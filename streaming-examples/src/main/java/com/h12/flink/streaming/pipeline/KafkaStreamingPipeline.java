@@ -64,13 +64,14 @@ public class KafkaStreamingPipeline extends KafkaBasePipeline {
                 .setProperty("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"username\" password=\"password\";")
                 .build();
 
-        WatermarkStrategy<KafkaInput> watermarkStrategy =
-                WatermarkStrategy
-                        .<KafkaInput>forMonotonousTimestamps()
-                        .withTimestampAssigner(
-                                (record, timestamp) -> timestamp
-                        );
-        DataStreamSource<KafkaInput> stream = env.fromSource(source, watermarkStrategy, "ingress-stream");
+//        WatermarkStrategy<KafkaInput> watermarkStrategy =
+//                WatermarkStrategy
+//                        .<KafkaInput>forMonotonousTimestamps()
+//                        .withTimestampAssigner(
+//                                (record, timestamp) -> timestamp
+//                        );
+
+        DataStreamSource<KafkaInput> stream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "ingress-stream");
 
 
         DataStream<String> savedToDbStream = stream.name("kafka-input")
