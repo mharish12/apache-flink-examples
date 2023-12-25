@@ -1,0 +1,150 @@
+buildscript {
+    ext {
+        springBootVersion = "3.2.0"
+        springFrameworkVersion = "6.1.2"
+        apacheCommonLangVersion = "3.0"
+        apacheCommonCollectionVersion = "4.0"
+        apacheCommonCsvVersion = "1.8"
+        apacheCommonValidatorVersion = "1.6"
+        mockitoVersion = "4.2.0"
+        testNgVersion = "7.1.0"
+        springRetryVersion = "1.2.5.RELEASE"
+        echoVersion = "1.5.6"
+        powermockVersion = "2.0.7"
+        sonarQubeVarsion = "2.6.2"
+        junitVersion = "5.9.2"
+    }
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+
+}
+
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'jacoco'
+
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+//    reportsDirectory = file("$buildDir/reports/jacoco")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        url 'https://plugins.gradle.org/m2/'
+    }
+}
+
+allprojects {
+    group = 'com.h12'
+    apply plugin: "jacoco"
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+
+    dependencies {
+
+        implementation group: 'org.modelmapper', name: 'modelmapper', version: '3.1.1'
+
+        implementation(group: 'org.apache.commons', name: 'commons-collections4', version: "${apacheCommonCollectionVersion}")
+        implementation(group: 'org.apache.commons', name: 'commons-csv', version: "${apacheCommonCsvVersion}")
+        implementation(group: 'commons-validator', name: 'commons-validator', version: "${apacheCommonValidatorVersion}")
+        implementation(group: 'commons-net', name: 'commons-net', version: "3.6")
+
+        implementation 'io.prometheus:simpleclient_dropwizard:0.0.16'
+        implementation 'io.prometheus:simpleclient_servlet:0.0.16'
+        implementation 'io.prometheus:simpleclient:0.0.16'
+
+        testImplementation("org.powermock:powermock-api-mockito2:${powermockVersion}") {
+            exclude group: 'org.testng', module: 'testng'
+        }
+        testImplementation("org.powermock:powermock-module-testng:${powermockVersion}") {
+            exclude group: 'org.testng', module: 'testng'
+        }
+        testImplementation 'com.google.inject:guice:4.2.2'
+        testImplementation("org.testng:testng:${testNgVersion}") {
+            exclude group: 'com.google.inject', module: 'guice'
+        }
+        testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: junitVersion
+        testImplementation group: 'org.mockito', name: 'mockito-inline', version: mockitoVersion
+        testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: mockitoVersion
+//        testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+        testImplementation("org.springframework:spring-test:6.0.6")
+        testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+        testImplementation 'org.jeasy:easy-random-core:4.0.0'
+    }
+
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+        implementation {
+            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        }
+
+    }
+
+    test {
+        useJUnitPlatform()
+        //forkEvery = 1
+        // Use TestNG for unit tests
+        useTestNG {
+            options ->
+                options.parallel = 'tests'
+                options.threadCount = 3
+        }
+
+        failFast = false
+    }
+
+    tasks.withType(Test).configureEach {
+        maxParallelForks = 4
+    }
+
+    test.finalizedBy jacocoTestReport
+    jacocoTestReport.dependsOn test
+    check.dependsOn jacocoTestCoverageVerification
+}
+
+tasks.register('jacocoReport', JacocoReport) {
+    for (p in allprojects) {
+        def testTask = p.tasks.named("test")
+        if (testTask != null)
+            dependsOn(testTask)
+
+        executionData.setFrom(file("${p.buildDir}/jacoco/test.exec"))
+        classDirectories.from(file("${p.buildDir}/classes/java/main"))
+    }
+}

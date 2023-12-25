@@ -1,0 +1,82 @@
+buildscript {
+    ext {
+        flinkVersion= "1.18.0"
+        slf4jVersion = '1.7.36'
+        log4jVersion = '2.17.1'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'application'
+    // shadow plugin to produce fat JARs
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+
+group = 'com.h12'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repository.apache.org/content/repositories/snapshots"
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+applicationDefaultJvmArgs = ["-Dlog4j.configurationFile=log4j2.properties"]
+
+configurations {
+    flinkShadowJar // dependencies which go into the shadowJar
+    // always exclude these (also from transitive dependencies) since they are provided by Flink
+    flinkShadowJar.exclude group: 'org.apache.flink', module: 'force-shading'
+    flinkShadowJar.exclude group: 'com.google.code.findbugs', module: 'jsr305'
+    flinkShadowJar.exclude group: 'org.slf4j'
+    flinkShadowJar.exclude group: 'org.apache.logging.log4j'
+}
+
+dependencies {
+    api project(":pipeline-commons")
+
+    api("org.apache.flink:flink-clients:${flinkVersion}") {
+        ['commons-collections'].each {
+            exclude(module: "$it")
+        }
+    }
+
+    api(group: 'org.apache.flink', name: 'flink-streaming-java', version: flinkVersion) {
+        ['commons-collections'].each {
+            exclude(module: "$it")
+        }
+    }
+    api(group: 'org.apache.flink', name: 'flink-java', version: flinkVersion) {
+        ['commons-collections'].each {
+            exclude(module: "$it")
+        }
+    }
+    api(group: 'org.apache.flink', name: 'flink-connector-kafka', version: '3.0.2-1.18') {
+        ['commons-collections', 'kafka-clients'].each {
+            exclude(module: "$it")
+        }
+    }
+    api(group: 'org.apache.kafka', name: 'kafka-clients', version: '3.6.1')
+
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+    runtimeOnly "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+    runtimeOnly "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+
+    testImplementation platform('org.junit:junit-bom:5.9.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
