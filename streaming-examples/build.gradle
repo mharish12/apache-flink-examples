@@ -68,6 +68,8 @@ dependencies {
         }
     }
     api(group: 'org.apache.kafka', name: 'kafka-clients', version: '3.6.1')
+    api(group: 'org.apache.flink', name: 'flink-metrics-prometheus', version: flinkVersion)
+
 
     runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
     runtimeOnly "org.apache.logging.log4j:log4j-api:${log4jVersion}"
