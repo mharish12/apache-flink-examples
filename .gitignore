@@ -75,6 +75,9 @@ bin/**
 # production
 /build
 
+flink-1.18.1/**
+flink-1.18.1
+
 # misc
 .DS_Store
 .env.local

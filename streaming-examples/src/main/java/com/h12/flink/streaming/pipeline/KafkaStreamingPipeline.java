@@ -46,7 +46,7 @@ public class KafkaStreamingPipeline extends KafkaBasePipeline {
             parameterTool.mergeWith(ParameterTool.fromSystemProperties());
 
             KafkaSource<KafkaInput> source = KafkaSource.<KafkaInput>builder()
-                    .setBootstrapServers("localhost:9092")
+                    .setBootstrapServers("localhost:29092")
                     .setProperties(this.getKafkaProps())
                     .setTopics("input-topic")
                     .setGroupId("my-group")
