@@ -50,7 +50,7 @@ kubectl port-forward svc/flink-1703758387-jobmanager 8081:8081
 
 - Copy jar file to the pod : ```kubectl cp <jar-file-path> <job-manager-pod>:/tmp/pipeline.jar```
 - Execute Pod in interactive mode  :  ```kubect exec -i -t <job-manager-pod-name>  -- bash```
-    - Ex : ``` kubectl cp /Users/zop7917/IdeaProjects/apache-flink/build/pipeline-1.0-SNAPSHOT.jar flink-1703758387-jobmanager:/tmp/pipeline.jar```
+    - Ex : ``` kubectl cp $(pwd)/apache-flink/build/pipeline-1.0-SNAPSHOT.jar flink-1703758387-jobmanager:/tmp/pipeline.jar```
 ```agsl
 flink run -c org.flink.pipeline.ApacheFlinkPipeline /tmp/pipeline.jar
 ```
